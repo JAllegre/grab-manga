@@ -1,0 +1,13 @@
+{
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+
+  "git.autofetch": true,
+  "git.inputValidationSubjectLength": 250,
+  "git.replaceTagsWhenPull": true,
+
+  "cSpell.language": "en,fr",
+  "cSpell.userWords": ["jallegre"]
+}
