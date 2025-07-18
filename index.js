@@ -1,9 +1,20 @@
-import fsp from "fs/promises";
 import fs from "fs";
+import fsp from "fs/promises";
 import http from "http";
 import https from "https";
 import PDFDocument from "pdfkit";
-const doc = new PDFDocument();
+
+const TEMP_DIR_ROOT = "./tmp";
+const PDF_DIR_ROOT = "./pdf";
+const SCANS_URL = "https://anime-sama.fr/s2/scans";
+
+// const mangaTitle = "Kaoru Hana wa Rin to Saku";
+// const startChapter = 1;
+// const endChapter = 5;
+
+const mangaTitle = "Fullmetal Alchemist";
+const startChapter = 1;
+const endChapter = 5;
 
 const downloadImage = (url, filename) => {
   let client = http;
@@ -11,7 +22,7 @@ const downloadImage = (url, filename) => {
     client = https;
   }
   return new Promise((resolve, reject) => {
-    client.get(url, (res) => {
+    const req = client.get(url, (res) => {
       if (res.statusCode > 300) {
         return reject(new Error(res.statusCode));
       }
@@ -20,58 +31,110 @@ const downloadImage = (url, filename) => {
         .on("error", reject)
         .once("close", () => resolve(filename));
     });
+    // .on("error", (err) => {
+    //   console.log("@@@@@@ju@@@@@index.js/27", "client error", err);
+    //   // Check if retry is needed
+    //   if (req.reusedSocket && err.code === "ECONNRESET") {
+    //     return downloadImage(url, filename);
+    //   }
+    // });
   });
+};
+
+const writePdf = async (mangaTitle, chapterTitle, imagePaths) => {
+  console.log(">>>", "PDF Writing chapter", chapterTitle);
+  const doc = new PDFDocument({ size: "A4" });
+  const PAGE_WIDTH = 595;
+  const PAGE_HEIGHT = 841;
+
+  const mangaDir = `${PDF_DIR_ROOT}/${mangaTitle}`;
+  if (!fs.existsSync(mangaDir)) {
+    await fsp.mkdir(mangaDir);
+  }
+
+  doc.pipe(fs.createWriteStream(`${mangaDir}/${chapterTitle}.pdf`));
+
+  const firstImage = imagePaths.shift();
+  doc
+    .image(firstImage, 0, 0, {
+      fit: [PAGE_WIDTH, PAGE_HEIGHT],
+      align: "center",
+      valign: "center",
+    })
+    .fontSize(16)
+    .fillColor("white")
+    .text(chapterTitle, 3, 3)
+    .fillColor("black")
+    .text(chapterTitle, 2, 2);
+
+  imagePaths.forEach((imagePath) => {
+    console.log(">>>", "PDF Writing image", imagePath);
+
+    doc.addPage().image(imagePath, 0, 0, {
+      fit: [PAGE_WIDTH, PAGE_HEIGHT],
+      align: "center",
+      valign: "center",
+    });
+  });
+
+  doc.end();
 };
 
 (async () => {
   try {
-    const DEST_DIR_ROOT = "./data";
-
-    if (fs.existsSync(DEST_DIR_ROOT)) {
-      await fsp.rm(DEST_DIR_ROOT, { recursive: true });
+    if (fs.existsSync(TEMP_DIR_ROOT)) {
+      await fsp.rm(TEMP_DIR_ROOT, { recursive: true });
     }
-    await fsp.mkdir(DEST_DIR_ROOT);
+    await fsp.mkdir(TEMP_DIR_ROOT);
 
-    try {
-      for (let chapterCpt = 1; chapterCpt < 4; chapterCpt++) {
-        try {
-          for (let imgCpt = 1; imgCpt < 4; imgCpt++) {
-            const url = `https://anime-sama.fr/s2/scans/Kaoru%20Hana%20wa%20Rin%20to%20Saku/${chapterCpt}/${imgCpt}.jpg`;
-            const outFileName = `${DEST_DIR_ROOT}/img${chapterCpt}-${imgCpt}.jpg`;
-            await downloadImage(url, outFileName);
+    if (fs.existsSync(PDF_DIR_ROOT)) {
+      await fsp.rm(PDF_DIR_ROOT, { recursive: true });
+    }
+    await fsp.mkdir(PDF_DIR_ROOT);
 
-            console.log("@@@@@@ju@@[index.js.44]", "Got", outFileName);
-          }
-        } catch (err) {
-          console.log("@@@@@@ju@@[index.js.28]", "Jump to next Chapter");
+    let allImagePaths = [];
+    let chapterCpt = startChapter;
+    while (true) {
+      allImagePaths = [];
+      let imgCpt = 1;
+      try {
+        while (true) {
+          const url = `${SCANS_URL}/${encodeURI(mangaTitle)}/${chapterCpt}/${imgCpt}.jpg`;
+          const outFileName = `${TEMP_DIR_ROOT}/img-${chapterCpt}-${imgCpt}.jpg`;
+          await downloadImage(url, outFileName);
+
+          allImagePaths.push(outFileName);
+          console.log(">>>", "Got", outFileName);
+          imgCpt++;
         }
+      } catch (err) {
+        console.log(">>>", "End of chapter", chapterCpt);
       }
-    } catch (err2) {
-      console.log("@@@@@@ju@@[index.js.28]", "Download complete");
+
+      if (allImagePaths.length === 0) {
+        break;
+      }
+
+      await writePdf(
+        mangaTitle,
+        `${mangaTitle} - Chapitre ${chapterCpt}`,
+        allImagePaths
+      );
+      chapterCpt++;
+
+      if (chapterCpt > endChapter) {
+        break;
+      }
     }
-
-    doc.pipe(fs.createWriteStream("output.pdf"));
-
-    // Embed a font, set the font size, and render some text
-    doc
-      //.font("fonts/PalatinoBold.ttf")
-      .fontSize(25)
-      .text("Some text with an embedded font!", 100, 100);
-    doc.addPage().image("data/img1-1.jpg", {
-      fit: [250, 300],
-      align: "center",
-      valign: "center",
-    });
-
-    // Add another page
-    doc.addPage().image("data/img1-2.jpg", {
-      fit: [250, 300],
-      align: "center",
-      valign: "center",
-    });
-
-    doc.end();
   } catch (error) {
-    console.log("@@@@@@ju@@[index.js.43]", error);
+    console.log("!!!", error);
+  }
+
+  try {
+    if (fs.existsSync(TEMP_DIR_ROOT)) {
+      await fsp.rm(TEMP_DIR_ROOT, { recursive: true });
+    }
+  } catch (error) {
+    console.log("!!!", error);
   }
 })();
