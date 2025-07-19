@@ -1,4 +1,27 @@
+/* eslint-disable no-irregular-whitespace */
 const mangas = [
+  {
+    title: "Kaoru Hana wa Rin to Saku",
+    tomes: [
+      { startChapter: 1, endChapter: 5 }, // Tome 1
+      { startChapter: 6, endChapter: 13 }, // Tome 2
+      { startChapter: 14, endChapter: 21 }, // Tome 3
+      { startChapter: 22, endChapter: 29 }, // Tome 4
+      { startChapter: 30, endChapter: 37 }, // Tome 5
+      { startChapter: 38, endChapter: 45 }, // Tome 6
+      { startChapter: 46, endChapter: 53 }, // Tome 7
+      { startChapter: 54, endChapter: 61 }, // Tome 8
+      { startChapter: 62, endChapter: 69 }, // Tome 9
+      { startChapter: 70, endChapter: 77 }, // Tome 10
+      { startChapter: 78, endChapter: 85 }, // Tome 11
+      { startChapter: 86, endChapter: 93 }, // Tome 12
+      { startChapter: 94, endChapter: 100 }, // Tome 13
+      { startChapter: 101, endChapter: 109 }, // Tome 14
+      { startChapter: 110, endChapter: 117 }, // Tome 15
+      { startChapter: 118, endChapter: 125 }, // Tome 16
+      { startChapter: 126, endChapter: 133 }, // Tome 17
+    ],
+  },
   {
     title: "L'Atelier des Sorciers",
     tomes: [
