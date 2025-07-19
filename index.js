@@ -1,22 +1,42 @@
+/*
+ MODE D'EMPLOI
+
+ - Aller sur https://anime-sama.fr/
+ - Rechercher le titre souhaiter
+ - Aller dans scans et voire jusqu'à quel chapitre on peut grab et si il y a un décallage de tome (x.5) pour adapter le résultat suivant
+
+ - Utiliser le prompt suivant pour générer le tableau de tomes nécéssaires (manga.js)en mettant le bon titre
+
+      Crée moi un tableau js contenant des objets représentant les tomes du manga "L'Atelier des Sorciers" avec en première propriété le titre ("title": string) et en deuxième propriété un tableau des tomes ("tomes":array of object). Un tome étant  un objet avec le premier chapitre officiel ( "startChapter": numer) et le dernier chapitre officiel ("endChapter":number).
+      Voilà à quoi cela doit ressembler:
+      {
+          title: "Le Titre",
+          tomes: [
+            {
+              startChapter: 1,
+              endChapter: 8,
+            },
+          ]
+      }
+     Il faut renseigner les vrais chapitres de chaque tome officiel de ce manga
+
+
+     - Vérifier jusqu'à quel tome/chapitre c'est disponible sur le site 
+*/
 import fs from "fs";
 import fsp from "fs/promises";
 import http from "http";
 import https from "https";
 import PDFDocument from "pdfkit";
+import mangas from "./mangas.js";
 
 const TEMP_DIR_ROOT = "./tmp";
 const PDF_DIR_ROOT = "./pdf";
 const SCANS_URL = "https://anime-sama.fr/s2/scans";
 
-// const mangaTitle = "Kaoru Hana wa Rin to Saku";
-// const startChapter = 1;
-// const endChapter = 5;
-
-const mangaTitle = "Fullmetal Alchemist";
-const startChapter = 1;
-const endChapter = 5;
-
 const downloadImage = (url, filename) => {
+  console.log(">>>", "Downloading image", url, " / ", filename);
+
   let client = http;
   if (url.toString().indexOf("https") === 0) {
     client = https;
@@ -41,8 +61,8 @@ const downloadImage = (url, filename) => {
   });
 };
 
-const writePdf = async (mangaTitle, chapterTitle, imagePaths) => {
-  console.log(">>>", "PDF Writing chapter", chapterTitle);
+const writePdf = async (mangaTitle, tomeTitle, imagePaths) => {
+  console.log(">>>", "PDF Writing chapter", mangaTitle, " / ", tomeTitle, " / ", imagePaths.length);
   const doc = new PDFDocument({ size: "A4" });
   const PAGE_WIDTH = 595;
   const PAGE_HEIGHT = 841;
@@ -52,7 +72,7 @@ const writePdf = async (mangaTitle, chapterTitle, imagePaths) => {
     await fsp.mkdir(mangaDir);
   }
 
-  doc.pipe(fs.createWriteStream(`${mangaDir}/${chapterTitle}.pdf`));
+  doc.pipe(fs.createWriteStream(`${mangaDir}/${tomeTitle}.pdf`));
 
   const firstImage = imagePaths.shift();
   doc
@@ -63,9 +83,9 @@ const writePdf = async (mangaTitle, chapterTitle, imagePaths) => {
     })
     .fontSize(16)
     .fillColor("white")
-    .text(chapterTitle, 3, 3)
+    .text(tomeTitle, 3, 3)
     .fillColor("black")
-    .text(chapterTitle, 2, 2);
+    .text(tomeTitle, 2, 2);
 
   imagePaths.forEach((imagePath) => {
     console.log(">>>", "PDF Writing image", imagePath);
@@ -82,6 +102,8 @@ const writePdf = async (mangaTitle, chapterTitle, imagePaths) => {
 
 (async () => {
   try {
+    const mangaData = mangas[0];
+
     if (fs.existsSync(TEMP_DIR_ROOT)) {
       await fsp.rm(TEMP_DIR_ROOT, { recursive: true });
     }
@@ -92,39 +114,35 @@ const writePdf = async (mangaTitle, chapterTitle, imagePaths) => {
     }
     await fsp.mkdir(PDF_DIR_ROOT);
 
-    let allImagePaths = [];
-    let chapterCpt = startChapter;
-    while (true) {
-      allImagePaths = [];
-      let imgCpt = 1;
-      try {
-        while (true) {
-          const url = `${SCANS_URL}/${encodeURI(mangaTitle)}/${chapterCpt}/${imgCpt}.jpg`;
-          const outFileName = `${TEMP_DIR_ROOT}/img-${chapterCpt}-${imgCpt}.jpg`;
-          await downloadImage(url, outFileName);
+    const mangaTitle = mangaData.title;
 
-          allImagePaths.push(outFileName);
-          console.log(">>>", "Got", outFileName);
-          imgCpt++;
+    for (let tomeCpt = 0; tomeCpt < mangaData.tomes.length; tomeCpt++) {
+      const tome = mangaData.tomes[tomeCpt];
+      let tomeImages = [];
+      for (let chapterCpt = tome.startChapter; chapterCpt <= tome.endChapter; chapterCpt++) {
+        let imgCpt = 1;
+
+        try {
+          while (true) {
+            const imageUrl = `${SCANS_URL}/${encodeURI(mangaTitle)}/${chapterCpt}/${imgCpt}.jpg`;
+            const imageFileName = `${TEMP_DIR_ROOT}/img-${chapterCpt}-${imgCpt}.jpg`;
+
+            await downloadImage(imageUrl, imageFileName);
+
+            tomeImages.push(imageFileName);
+            imgCpt++;
+          }
+        } catch (err) {
+          // End of chapter
         }
-      } catch (err) {
-        console.log(">>>", "End of chapter", chapterCpt);
       }
 
-      if (allImagePaths.length === 0) {
+      if (tomeImages.length <= 0) {
+        console.log("!!!", "ERROR - No image downloaded");
         break;
       }
 
-      await writePdf(
-        mangaTitle,
-        `${mangaTitle} - Chapitre ${chapterCpt}`,
-        allImagePaths
-      );
-      chapterCpt++;
-
-      if (chapterCpt > endChapter) {
-        break;
-      }
+      await writePdf(mangaTitle, `${mangaTitle} - Tome ${String(tomeCpt + 1).padStart(2, "0")}`, tomeImages);
     }
   } catch (error) {
     console.log("!!!", error);
