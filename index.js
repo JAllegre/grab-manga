@@ -7,7 +7,7 @@
 
  - Utiliser le prompt suivant pour générer le tableau de tomes nécéssaires (manga.js)en mettant le bon titre
 
-      Crée moi un tableau js contenant des objets représentant les tomes du manga "L'Atelier des Sorciers" avec en première propriété le titre ("title": string) et en deuxième propriété un tableau des tomes ("tomes":array of object). Un tome étant  un objet avec le premier chapitre officiel ( "startChapter": numer) et le dernier chapitre officiel ("endChapter":number).
+      Crée moi un objet javascript le manga "My Hero Academia" avec en première propriété le titre ("title": string) et en deuxième propriété un tableau des tomes ("tomes":array of object). Un tome étant  un objet avec le premier chapitre officiel ( "startChapter": number) et le dernier chapitre officiel ("endChapter":number).
       Voilà à quoi cela doit ressembler:
       {
           title: "Le Titre",
@@ -21,7 +21,11 @@
      Il faut renseigner les vrais chapitres de chaque tome officiel de ce manga
 
 
-     - Vérifier jusqu'à quel tome/chapitre c'est disponible sur le site 
+     - Vérifier jusqu'à quel tome/chapitre c'est disponible sur le site et adapter l'objet généré
+
+     - Ajouter l'objet js généré par chatGPT en début de tableau (le script ne prend que le premier, les autres sont gardé pour une potentiel future utilisation)
+
+     - npm start
 */
 import fs from "fs";
 import fsp from "fs/promises";
@@ -125,7 +129,7 @@ const writePdf = async (mangaTitle, tomeTitle, imagePaths) => {
         try {
           while (true) {
             const imageUrl = `${SCANS_URL}/${encodeURI(mangaTitle)}/${chapterCpt}/${imgCpt}.jpg`;
-            const imageFileName = `${TEMP_DIR_ROOT}/img-${chapterCpt}-${imgCpt}.jpg`;
+            const imageFileName = `${TEMP_DIR_ROOT}/img-t${tomeCpt}-c${chapterCpt}-i${imgCpt}.jpg`;
 
             await downloadImage(imageUrl, imageFileName);
 
