@@ -7,7 +7,7 @@
 
  - Utiliser le prompt suivant pour générer le tableau de tomes nécéssaires (manga.js)en mettant le bon titre
 
-      Crée moi un objet javascript le manga "My Hero Academia" avec en première propriété le titre ("title": string) et en deuxième propriété un tableau des tomes ("tomes":array of object). Un tome étant  un objet avec le premier chapitre officiel ( "startChapter": number) et le dernier chapitre officiel ("endChapter":number).
+      Crée moi un objet javascript à partir du manga "Solo Leveling" avec en première propriété le titre ("title": string) et en deuxième propriété un tableau des tomes ("tomes":array of object). Un tome étant  un objet avec le premier chapitre officiel ( "startChapter": number) et le dernier chapitre officiel ("endChapter":number).
       Voilà à quoi cela doit ressembler:
       {
           title: "Le Titre",
@@ -27,16 +27,26 @@
 
      - npm start
 */
+import { fileTypeFromFile } from "file-type";
 import fs from "fs";
 import fsp from "fs/promises";
 import http from "http";
 import https from "https";
 import PDFDocument from "pdfkit";
+import webp from "webp-converter";
+
 import mangas from "./mangas.js";
+
+// this will grant 755 permission to webp executables
+webp.grant_permission();
+const HOST = "https://anime-sama.to";
 
 const TEMP_DIR_ROOT = "./tmp";
 const PDF_DIR_ROOT = "./pdf";
-const SCANS_URL = "https://anime-sama.fr/s2/scans";
+const SCANS_URL = HOST + "/s2/scans";
+
+const TOME_START = 1; // First tome to grab (1 based)
+const TOME_LAST = 15;
 
 const downloadImage = (url, filename) => {
   console.log(">>>", "Downloading image", url, " / ", filename);
@@ -120,7 +130,11 @@ const writePdf = async (mangaTitle, tomeTitle, imagePaths) => {
 
     const mangaTitle = mangaData.title;
 
-    for (let tomeCpt = 0; tomeCpt < mangaData.tomes.length; tomeCpt++) {
+    const len = Math.min(TOME_LAST, mangaData.tomes.length);
+
+    console.log(">>>", "Starting to grab from ", TOME_START, "to", TOME_LAST);
+
+    for (let tomeCpt = TOME_START - 1; tomeCpt < len; tomeCpt++) {
       const tome = mangaData.tomes[tomeCpt];
       let tomeImages = [];
       for (let chapterCpt = tome.startChapter; chapterCpt <= tome.endChapter; chapterCpt++) {
@@ -129,9 +143,15 @@ const writePdf = async (mangaTitle, tomeTitle, imagePaths) => {
         try {
           while (true) {
             const imageUrl = `${SCANS_URL}/${encodeURI(mangaTitle)}/${chapterCpt}/${imgCpt}.jpg`;
-            const imageFileName = `${TEMP_DIR_ROOT}/img-t${tomeCpt}-c${chapterCpt}-i${imgCpt}.jpg`;
+            const imageFileName = `${TEMP_DIR_ROOT}/img-t${tomeCpt + 1}-c${chapterCpt + 1}-i${imgCpt}.jpg`;
 
             await downloadImage(imageUrl, imageFileName);
+
+            const type = await fileTypeFromFile(imageFileName);
+            if (type.mime === "image/webp") {
+              console.log("webp", imageFileName);
+              await webp.dwebp(imageFileName, imageFileName, "-o");
+            }
 
             tomeImages.push(imageFileName);
             imgCpt++;

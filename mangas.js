@@ -1,6 +1,69 @@
 /* eslint-disable no-irregular-whitespace */
 const mangas = [
   {
+    title: "Solo Leveling",
+    tomes: [
+      { startChapter: 0, endChapter: 12 },
+      { startChapter: 13, endChapter: 26 },
+      { startChapter: 27, endChapter: 44 },
+      { startChapter: 45, endChapter: 63 },
+      { startChapter: 64, endChapter: 81 },
+      { startChapter: 82, endChapter: 97 },
+      { startChapter: 98, endChapter: 110 },
+      { startChapter: 111, endChapter: 122 },
+      { startChapter: 123, endChapter: 134 },
+      { startChapter: 135, endChapter: 146 },
+      { startChapter: 147, endChapter: 158 },
+      { startChapter: 159, endChapter: 168 },
+      { startChapter: 169, endChapter: 179 },
+      { startChapter: 180, endChapter: 190 },
+      { startChapter: 191, endChapter: 200 },
+    ],
+  },
+  {
+    title: "Hunter x Hunter",
+    tomes: [
+      { startChapter: 1, endChapter: 8 }, // Tome 1
+      { startChapter: 9, endChapter: 17 }, // Tome 2
+      { startChapter: 18, endChapter: 26 }, // Tome 3
+      { startChapter: 27, endChapter: 36 }, // Tome 4
+      { startChapter: 37, endChapter: 45 }, // Tome 5
+      { startChapter: 46, endChapter: 55 }, // Tome 6
+      { startChapter: 56, endChapter: 64 }, // Tome 7
+      // { startChapter: 65, endChapter: 73 }, // Tome 8
+      { startChapter: 74, endChapter: 82 }, // Tome 9
+      { startChapter: 83, endChapter: 91 }, // Tome 10
+      { startChapter: 92, endChapter: 100 }, // Tome 11
+      { startChapter: 101, endChapter: 110 }, // Tome 12
+      { startChapter: 111, endChapter: 119 }, // Tome 13
+      { startChapter: 120, endChapter: 129 }, // Tome 14
+      { startChapter: 130, endChapter: 138 }, // Tome 15
+      { startChapter: 139, endChapter: 147 }, // Tome 16
+      { startChapter: 148, endChapter: 157 }, // Tome 17
+      { startChapter: 158, endChapter: 167 }, // Tome 18
+      { startChapter: 168, endChapter: 177 }, // Tome 19
+      { startChapter: 178, endChapter: 187 }, // Tome 20
+      { startChapter: 188, endChapter: 197 }, // Tome 21
+      { startChapter: 198, endChapter: 207 }, // Tome 22
+      { startChapter: 208, endChapter: 217 }, // Tome 23
+      { startChapter: 218, endChapter: 227 }, // Tome 24
+      { startChapter: 228, endChapter: 237 }, // Tome 25
+      { startChapter: 238, endChapter: 247 }, // Tome 26
+      { startChapter: 248, endChapter: 257 }, // Tome 27
+      { startChapter: 258, endChapter: 267 }, // Tome 28
+      { startChapter: 268, endChapter: 277 }, // Tome 29
+      { startChapter: 278, endChapter: 287 }, // Tome 30
+      { startChapter: 288, endChapter: 297 }, // Tome 31
+      { startChapter: 298, endChapter: 307 }, // Tome 32
+      { startChapter: 308, endChapter: 317 }, // Tome 33
+      { startChapter: 318, endChapter: 327 }, // Tome 34
+      { startChapter: 328, endChapter: 337 }, // Tome 35
+      { startChapter: 338, endChapter: 347 }, // Tome 36
+      { startChapter: 348, endChapter: 357 }, // Tome 37
+      { startChapter: 358, endChapter: 400 }, // Tome 38 (dernier connu)
+    ],
+  },
+  {
     title: "Frieren",
     tomes: [
       { startChapter: 1, endChapter: 7 }, // Tome 1
